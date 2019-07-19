@@ -43,6 +43,7 @@ var md9ys = &spider.Spider{
 			types := map[string][]string{
 				"movie": []string{"dz", "xj", "aq", "kh", "jq", "kb"},
 				"tv":    []string{"gc", "rh", "om", "gt"},
+				"other": []string{"man", "dh", "zy"},
 			}
 			for k, v := range types {
 				for _, item := range v {
@@ -56,19 +57,19 @@ var md9ys = &spider.Spider{
 				AidFunc: func(ctx *spider.Context, v map[string]interface{}) interface{} {
 					maxPageNum := v["maxPageNum"].(int)
 					videoType := v["videoType"].(string)
-					// tag := v["tag"].(string)
+					tag := v["tag"].(string)
 					baseURL := "http://m.d9ys.com"
-					fmt.Println("fet...", maxPageNum)
+					fmt.Println("fet...", tag, videoType, maxPageNum)
 
 					for index := 2; index < maxPageNum; index++ {
 						//"/dz/142.html"
 						url := baseURL + fmt.Sprintf("/%s/%d.html", videoType, index)
-						fmt.Println(index, url)
+						// fmt.Println(index, url)
 
-						// ctx.AddQueue(&request.Request{Url: url, Rule: "fetchDetail", Temp: map[string]interface{}{
-						// 	"videoType": videoType,
-						// 	"tag":       tag,
-						// }})
+						ctx.AddQueue(&request.Request{Url: url, Rule: "fetchList", Temp: map[string]interface{}{
+							"videoType": videoType,
+							"tag":       tag,
+						}})
 					}
 					return nil
 				},
@@ -96,7 +97,7 @@ var md9ys = &spider.Spider{
 					items.Each(func(i int, s *goquery.Selection) {
 						href, _ := s.Attr("href")
 						url := "http://m.d9ys.com" + href
-						fmt.Println(url)
+						// fmt.Println(url)
 						ctx.AddQueue(&request.Request{Url: url, Rule: "fetchDetail", Temp: map[string]interface{}{
 							"videoType": videoType,
 							"tag":       tag,
