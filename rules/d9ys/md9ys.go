@@ -78,7 +78,7 @@ var md9ys = &spider.Spider{
 					videoType := ctx.GetTemp("videoType", "")
 					tag := ctx.GetTemp("tag", "")
 					isStart := ctx.GetTemp("isStart", 0).(int)
-					if isStart > 0 {
+					if isStart == 1 {
 						lastpage := query.Find(".page a").Last()
 						lastPageHref, _ := lastpage.Attr("href")
 						reg := regexp.MustCompile(`\d+`)
