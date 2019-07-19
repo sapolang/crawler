@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "crawler/rules"
+	_ "crawler/rules/d9ys"
 
 	"github.com/henrylee2cn/pholcus/exec"
 )
