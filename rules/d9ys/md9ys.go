@@ -115,6 +115,7 @@ var md9ys = &spider.Spider{
 					"playPageURL",
 					"tag",
 					"videoType",
+					"short",
 				},
 				ParseFunc: func(ctx *spider.Context) {
 					query := ctx.GetDom()
@@ -127,6 +128,7 @@ var md9ys = &spider.Spider{
 					playPageURL, _ := query.Find("#m_html_p4 a").Attr("href")
 					videoType := ctx.GetTemp("videoType", "")
 					tag := ctx.GetTemp("tag", "")
+					short := query.Find(".short").Text()
 					detail := map[int]interface{}{
 						0: title,
 						1: actor,
@@ -137,6 +139,7 @@ var md9ys = &spider.Spider{
 						6: playPageURL,
 						7: tag,
 						8: videoType,
+						9: short,
 					}
 					// fmt.Println(detail)
 					ctx.Output(detail)
