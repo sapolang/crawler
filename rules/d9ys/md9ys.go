@@ -10,7 +10,6 @@ package d9ys
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -43,60 +42,42 @@ var md9ys = &spider.Spider{
 			types := map[string][]string{
 				"movie": []string{"dz", "xj", "aq", "kh", "jq", "kb"},
 				"tv":    []string{"gc", "rh", "om", "gt"},
-				"other": []string{"man", "dh", "zy"},
+				// "other": []string{"man", "dh", "zy"},
 			}
 			for k, v := range types {
 				for _, item := range v {
-					ctx.AddQueue(&request.Request{Url: baseURL + "/" + item, Rule: "fetchList", Temp: map[string]interface{}{"tag": k, "videoType": item, "isStart": 1}})
+					ctx.AddQueue(&request.Request{Url: baseURL + "/" + item, Rule: "fetchList", Temp: map[string]interface{}{"tag": k, "videoType": item, "isStart": true}})
 				}
 			}
 		},
 
 		Trunk: map[string]*spider.Rule{
 			"fetchList": { //拉取列表页
-				AidFunc: func(ctx *spider.Context, v map[string]interface{}) interface{} {
-					maxPageNum := v["maxPageNum"].(int)
-					videoType := v["videoType"].(string)
-					tag := v["tag"].(string)
-					baseURL := "http://m.d9ys.com"
-					fmt.Println("fet...", tag, videoType, maxPageNum)
-
-					for index := 2; index < maxPageNum; index++ {
-						//"/dz/142.html"
-						url := baseURL + fmt.Sprintf("/%s/%d.html", videoType, index)
-						// fmt.Println(index, url)
-
-						ctx.AddQueue(&request.Request{Url: url, Rule: "fetchList", Temp: map[string]interface{}{
-							"videoType": videoType,
-							"tag":       tag,
-						}})
-					}
-					return nil
-				},
 				ParseFunc: func(ctx *spider.Context) {
 					query := ctx.GetDom()
-					items := query.Find(".stui-vodlist__item a")
 					videoType := ctx.GetTemp("videoType", "")
 					tag := ctx.GetTemp("tag", "")
-					isStart := ctx.GetTemp("isStart", 0).(int)
-					if isStart == 1 {
-						lastpage := query.Find(".page a").Last()
-						lastPageHref, _ := lastpage.Attr("href")
-						reg := regexp.MustCompile(`\d+`)
-						matches := reg.FindAllString(lastPageHref, -1)
-						if len(matches) > 0 {
-							maxPageNum, _ := strconv.Atoi(matches[0])
-							ctx.Aid(map[string]interface{}{
-								"maxPageNum": maxPageNum,
-								"videoType":  videoType,
-								"tag":        tag,
-							}, "fetchList")
+					isStart := ctx.GetTemp("isStart", false).(bool)
+					baseURL := "http://m.d9ys.com"
+					if isStart {
+						lastpage := strings.Split(query.Find(".m_dianying_bt2").Text(), "/")
+						if len(lastpage) == 2 {
+							maxPageNum, _ := strconv.Atoi(lastpage[1])
+							for index := 2; index <= maxPageNum; index++ {
+								url := fmt.Sprintf("%s/%s/%d.html", baseURL, videoType, index)
+								// fmt.Println(index, url)
+
+								ctx.AddQueue(&request.Request{Url: url, Rule: "fetchList", Temp: map[string]interface{}{
+									"videoType": videoType,
+									"tag":       tag,
+								}})
+							}
 						}
 					}
-
+					items := query.Find(".stui-vodlist__item a")
 					items.Each(func(i int, s *goquery.Selection) {
 						href, _ := s.Attr("href")
-						url := "http://m.d9ys.com" + href
+						url := baseURL + href
 						// fmt.Println(url)
 						ctx.AddQueue(&request.Request{Url: url, Rule: "fetchDetail", Temp: map[string]interface{}{
 							"videoType": videoType,
