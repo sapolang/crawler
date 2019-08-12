@@ -1,10 +1,14 @@
-FROM golang:latest
+FROM golang:latest as builder
 
-# WORKDIR $GOPATH/src/github.com/sapolang/crawler
+RUN go get -u -v github.com/henrylee2cn/pholcus
+WORKDIR $GOPATH/src/crawler
+COPY . .
+RUN CGO_ENABLED=0 go build -a -installsuffix cgo -o /root/app main.go
 
-# RUN go get -u -v github.com/henrylee2cn/pholcus
-# RUN go build main.go
+FROM scratch
 WORKDIR /root
-ADD ./main /root
+COPY --from=builder /root/app ./
+
 EXPOSE 9090
-ENTRYPOINT ["./main"]
+CMD  [ "./app" ]
+
