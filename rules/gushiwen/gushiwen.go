@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/henrylee2cn/pholcus/app/downloader/request"
+	"github.com/henrylee2cn/pholcus/app/spider/common"
 	"github.com/henrylee2cn/pholcus/common/goquery" //DOM解析
 
 	. "github.com/henrylee2cn/pholcus/app/spider" //必需
@@ -35,6 +36,9 @@ var Gushiwen = &Spider{
 					//分类
 					lis := query.Find(".right .sons .cont a")
 					lis.Each(func(i int, s *goquery.Selection) {
+						// if i > 0 {
+						// 	return
+						// }
 						url, _ := s.Attr("href")
 						if !strings.HasPrefix(url, "http") {
 							url = "https://so.gushiwen.cn" + url
@@ -60,17 +64,23 @@ var Gushiwen = &Spider{
 				ParseFunc: func(ctx *Context) {
 					query := ctx.GetDom()
 					query.Find(".left .sons .typecont").Each(func(i int, s *goquery.Selection) {
+						// if i > 0 {
+						// 	return
+						// }
 						subType := s.Find(".bookMl").Text()
-						s.Find("span a").Each(func(i int, s *goquery.Selection) {
-							name := s.Text()
-							url, _ := s.Attr("href")
+						s.Find("span a").Each(func(i int, s1 *goquery.Selection) {
+							// if i > 0 {
+							// 	return
+							// }
+							name := s1.Text()
+							url, _ := s1.Attr("href")
 							if !strings.HasPrefix(url, "http") {
 								url = "https://so.gushiwen.cn" + url
 							}
-							data := map[int]string{
-								1: subType,
-								2: name,
-								3: url,
+							data := map[int]interface{}{
+								0: subType,
+								1: name,
+								2: url,
 							}
 							ctx.Output(data)
 							fmt.Println(data)
@@ -104,12 +114,20 @@ var Gushiwen = &Spider{
 					cont := query.Find("#sonsyuanwen .contson").Text()
 
 					authArr := strings.Split(auth, "：")
+					length := len(authArr)
+					var caodai, authName string
+					if length == 1 {
+						caodai = authArr[0]
+					} else if length > 1 {
+						caodai = authArr[0]
+						authName = authArr[1]
+					}
 
 					data := map[int]interface{}{
 						0: name,
-						1: authArr[0],
-						2: authArr[1],
-						3: cont,
+						1: caodai,
+						2: authName,
+						3: common.DepriveBreak(cont),
 						4: ctx.GetTemp("type", ""),
 					}
 					// 结果存入Response中转
