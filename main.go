@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
-	gushiwen.Gushiwen.Register()
-	exec.DefaultRun("web")
+	// gushiwen.Gushiwen.Register()
+	gushiwen.Author.Register()
+	exec.DefaultRun("cmd")
 }
